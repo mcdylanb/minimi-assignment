@@ -70,3 +70,21 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@media (max-width: 640px) {
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .table th, .table td {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .button {
+    padding: 10px 16px;
+    font-size: 16px;
+  }
+}

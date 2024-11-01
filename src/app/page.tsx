@@ -1,3 +1,5 @@
+"use client"
+import { useEffect, useState } from 'react';
 import Image from "next/image";
 import {
   Table,
@@ -18,18 +20,24 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-
-const mock_data =
-  [
-    { "id": 1, "name": "Company A" },
-    { "id": 2, "name": "Company B" },
-    { "id": 3, "name": "Company C" },
-    { "id": 4, "name": "Company D" },
-    { "id": 5, "name": "Company E" }
-  ];
-
-
 export default function Home() {
+  const [companies, setCompanies] = useState([]);
+
+  useEffect(() => {
+    console.log("in this fucking hook")
+    const fetchCompanies = async () => {
+      console.log("now using fetch companies")
+      const response = await fetch('/api/companies');
+      console.log("now trying to fetch")
+      console.log(response)
+      const data = await response.json();
+      console.log(data)
+      setCompanies(data);
+    };
+
+    fetchCompanies();
+  }, []);
+
   return (
     <div className="flex justify-center items-center min-h-screen">
       <Card>
@@ -44,13 +52,17 @@ export default function Home() {
               <TableRow>
                 <TableHead className="w-[100px]">No.</TableHead>
                 <TableHead>Company Name</TableHead>
+                <TableHead>Employee Count</TableHead>
+                <TableHead>Revenue</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mock_data.map((company) => (
+              {companies.map((company) => (
                 <TableRow key={company.id}>
                   <TableCell className="font-medium">{company.id}</TableCell>
                   <TableCell>{company.name}</TableCell>
+                  <TableCell>{company.employees}</TableCell>
+                  <TableCell>{company.revenue}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

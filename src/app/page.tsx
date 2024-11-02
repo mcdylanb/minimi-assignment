@@ -1,101 +1,138 @@
+"use client"
+import { useEffect, useState } from 'react';
 import Image from "next/image";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+
+const ITEMS_PER_PAGE = 5;
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [companies, setCompanies] = useState([]);
+  const [selectedCompanies, setSelectedCompanies] = useState(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const fetchCompanies = async (page) => {
+    const response = await fetch(`/api/companies?page=${page}&limit=${ITEMS_PER_PAGE}`);
+    const data = await response.json();
+    setCompanies(data.data);
+    setTotalPages(data.totalPages);
+  };
+
+  useEffect(() => {
+    fetchCompanies(currentPage);
+  }, [currentPage]);
+
+  const handleCheckboxChange = (id) => {
+    const updatedSelection = new Set(selectedCompanies);
+    if (updatedSelection.has(id)) {
+      updatedSelection.delete(id);
+    } else {
+      updatedSelection.add(id);
+    }
+    setSelectedCompanies(updatedSelection);
+  };
+
+  const handleDelete = () => {
+    const updatedCompanies = companies.filter(company => !selectedCompanies.has(company.id));
+    setCompanies(updatedCompanies);
+    setSelectedCompanies(new Set());
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prevPage => prevPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prevPage => prevPage - 1);
+    }
+  };
+
+  return (
+    <div className="flex justify-center items-center min-h-screen p-4">
+      <Card className="w-full max-w-4xl">
+        <CardHeader>
+          <CardTitle>Company List</CardTitle>
+          <CardDescription>Card Description</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[50px]">Select</TableHead>
+                  <TableHead className="w-[100px]">No.</TableHead>
+                  <TableHead>Company Name</TableHead>
+                  <TableHead>Address</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Email</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {companies.map((company) => (
+                  <TableRow key={company.id}>
+                    <TableCell>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedCompanies.has(company.id)} 
+                        onChange={() => handleCheckboxChange(company.id)} 
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{company.id}</TableCell>
+                    <TableCell>{company.name}</TableCell>
+                    <TableCell>{company.address}</TableCell>
+                    <TableCell>{company.phone}</TableCell>
+                    <TableCell>{company.email}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col sm:flex-row sm:justify-between">
+          <div className="flex space-x-2">
+            <button 
+              onClick={handlePreviousPage} 
+              disabled={currentPage === 1} 
+              className="bg-gray-500 text-white px-4 py-2 rounded"
+            >
+              Previous
+            </button>
+            <button 
+              onClick={handleNextPage} 
+              disabled={currentPage === totalPages} 
+              className="bg-gray-500 text-white px-4 py-2 rounded"
+            >
+              Next
+            </button>
+          </div>
+          <button 
+            onClick={handleDelete} 
+            className="bg-red-500 text-white px-4 py-2 rounded mt-2 sm:mt-0"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            Delete Selected
+          </button>
+        </CardFooter>
+      </Card>
     </div>
-  );
+  )
 }
